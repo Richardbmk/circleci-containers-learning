@@ -1,24 +1,39 @@
-version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.9-buster-node-browsers
-        environment:
-          TEST_DATABASE_URL: postgresql://root@localhost/circle_test
-      - image: circleci/postgres:9-bullseye-ram
+      - image: circleci/node
+    working_directory: ~/circleci-demo-schedule
     steps:
       - checkout
-      - run: sudo apt install postgresql-client-9.6
-      - run: whoami
-      - run: |
-          psql \
-          -d $TEST_DATABASE_URL \
-          -c "CREATE TABLE test (name char(25));"
-      - run: |
-          psql \
-          -d $TEST_DATABASE_URL \
-          -c "INSERT INTO test (name) VALUES ('fern')"
-      - run: |
-          psql \
-          -d $TEST_DATABASE_URL \
-          -c "SELECT * FROM test"
+      - run:
+          name: Run Build Command
+          command: echo "hello I am building and testing"
+          
+  deploy:
+    docker:
+      - image: circleci/node
+    working_directory: ~/circleci-demo-schedule
+    steps:
+      - checkout
+      - run:
+          name: Run Deploy Command
+          command: echoh "hello I am deploying"
+          
+workflows:
+  version: 2
+  commit-workflow:
+    jobs:
+      - build
+  schedule-workflow:
+    triggers:
+      - schedule:
+          cron: "*/5 * * * *"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - build
+      - deploy
+
+       
